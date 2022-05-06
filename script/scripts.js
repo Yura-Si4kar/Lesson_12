@@ -1,27 +1,30 @@
 const DELETE_BTN_CLASS = 'delete-btn';
 const INPUT_STRING = 'list_elements';
 const DONE_CLASS = 'done';
+const STORAGE_KEY = 'contactList';
 
 const inputForm = document.querySelector('.input_block');
-const toDoListEl = document.querySelector('.input_blocks');
+const contactListEl = document.querySelector('.input_blocks');
 const listTemplate = document.querySelector('.list_template').innerHTML;
-const inputText = document.querySelectorAll('.input_elements');
+const inputContactsEl = document.querySelectorAll('.input_elements');
 const errorText = document.querySelector('.error');
 const addBtn = document.querySelector('.input_btn');
 const resultEl = document.querySelector('.input_blocks');
 
 inputForm.addEventListener('submit', onContactFormSubmit);
-toDoListEl.addEventListener('click', onContactsListClick);
+contactListEl.addEventListener('click', onContactsListClick);
 
-let toDoList = [];
+let contactList = [];
+
+init();
 
 function onContactFormSubmit(e) {
     e.preventDefault();
 
-    const newTask = getTask();
+    const newContact = getContact();
 
-    if (isContactElValid(newTask)) {
-        addTask(newTask);
+    if (isContactElValid(newContact)) {
+        addContact(newContact);
         resetForm();
         removeError();
     } else {
@@ -29,59 +32,62 @@ function onContactFormSubmit(e) {
     }
 }
 
-function getTask() {
-    const task = {};
+function getContact() {
+    const contact = {};
 
-    inputText.forEach((inp) => {
-        task[inp.name] = inp.value;
+    inputContactsEl.forEach((inp) => {
+        contact[inp.name] = inp.value;
     });
 
-    return task;
+    return contact;
 }
 
-function generateTaskHtml(task) {
-    return listTemplate.replace('{{id}}', task.id)
-                        .replace('{{Name}}', task.name)
-                        .replace('{{Surname}}', task.surname)
-                        .replace('{{Phone_number}}', task.phone_number);
+function generateContactHtml(contact) {
+    return listTemplate.replace('{{id}}', contact.id)
+                        .replace('{{Name}}', contact.name)
+                        .replace('{{Surname}}', contact.surname)
+                        .replace('{{Phone_number}}', contact.phone_number);
 }
 
-function isContactElValid(task) {
-    return isTextFieldValid(task.name)
-        || isTextFieldValid(task.surname)
-        || isPhoneFieldValid(task.phone_number);
+function isContactElValid(contact) {
+    return validateInput(contact.name)
+        && validateInput(contact.surname)
+        && validateInput(contact.phone_number);
 }
 
-function isTextFieldValid(value) {
+function validateInput(value) {
     return value !== '';
 }
 
-function isPhoneFieldValid(value) {
-    return isTextFieldValid(value) && !isNaN(value);
-}
+function addContact(contact) {
+    const newContactHtml = generateContactHtml(contact);
+    contactListEl.insertAdjacentHTML('beforeend', newContactHtml);
 
-function addTask(task) {
-    const newTaskHtml = generateTaskHtml(task);
-    toDoListEl.insertAdjacentHTML('beforeend', newTaskHtml);
+    contactList.push(contact);
+    contact.id = Date.now();
 
-    toDoList.push(task);
-    task.id = Date.now();
+    saveData();
     renderList();
 }
 
-function getTaskID(el) {
+function init() {
+    contactList = restoreData();
+    renderList();
+}
+
+function getContactID(el) {
     return +el.closest('.' + INPUT_STRING).dataset.id;
 }
 
 function onContactsListClick(e) {
     if (e.target.classList.contains(DELETE_BTN_CLASS)) {
-        taskID = getTaskID(e.target);
-        deleteTask(taskID);
+        contactID = getContactID(e.target);
+        deletecontact(contactID);
     }   
 }
 
 function renderList() {
-    toDoListEl.innerHTML = toDoList.map(generateTaskHtml).join('\n');
+    contactListEl.innerHTML = contactList.map(generateContactHtml).join('\n');
 }
 
 function resetForm() {
@@ -96,8 +102,19 @@ function removeError() {
     errorText.classList.remove('show');
 }
 
-function deleteTask(id) {
-    toDoList = toDoList.filter((task) => task.id !== id);
+function deletecontact(id) {
+    contactList = contactList.filter((contact) => contact.id !== id);
 
+    saveData();
     renderList();
+}
+
+function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(contactList));
+}
+
+function restoreData() {
+    const data = localStorage.getItem(STORAGE_KEY);
+
+    return data ? JSON.parse(data) : [];
 }
