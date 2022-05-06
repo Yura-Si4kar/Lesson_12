@@ -82,7 +82,7 @@ function getContactID(el) {
 function onContactsListClick(e) {
     if (e.target.classList.contains(DELETE_BTN_CLASS)) {
         contactID = getContactID(e.target);
-        deletecontact(contactID);
+        deleteСontact(contactID);
     }   
 }
 
@@ -102,7 +102,7 @@ function removeError() {
     errorText.classList.remove('show');
 }
 
-function deletecontact(id) {
+function deleteСontact(id) {
     contactList = contactList.filter((contact) => contact.id !== id);
 
     saveData();
